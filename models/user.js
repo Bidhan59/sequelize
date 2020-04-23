@@ -82,8 +82,12 @@ module.exports.fetchUsers = async function({ db, data }) {
     );
     return err;
   }
+  var selectionCriteria = {};
+  if (data) {
+    selectionCriteria = { name: data };
+  }
   try {
-    const user = await User.findAll({ where: { name: data } });
+    const user = await User.findAll({ where: selectionCriteria });
     return user;
   } catch (err) {
     logger.appLogger.info(`Error in fetching the user data ${err}`);
@@ -103,15 +107,33 @@ module.exports.updateUser = async function({ db, criteria, data }) {
     );
     return err;
   }
-
   try {
-    const user = await User.update(
-      { bio: criteria, updatedAt: new Date() },
-      { where: { name: data.bio } }
-    );
+    const user = await User.update({ bio: data.bio }, { where: criteria });
     return user;
   } catch (err) {
     logger.appLogger.info(`Error in updating the user data ${err}`);
+    return err;
+  }
+};
+
+module.exports.deleteUser = async function({ db, criteria }) {
+  var User = userSchema(db);
+  try {
+    const result = await User.sync({
+      logging: console.log
+    });
+  } catch (err) {
+    logger.appLogger.info(
+      `Some thing went wrong while defining the schema ${err}`
+    );
+    return err;
+  }
+  console.log("criteria>>>>>>>>>>>>", criteria);
+  try {
+    const user = await User.destroy({ where: criteria });
+    return user;
+  } catch (err) {
+    logger.appLogger.info(`Error in deleting the user data ${err}`);
     return err;
   }
 };

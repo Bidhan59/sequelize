@@ -1,6 +1,6 @@
 const root = require("app-root-path");
 const userModel = require(`${root}/models/user`);
-const logger = require(`${root}/logger`).logger("mssql-node");
+const isError = require(`${root}/helpers/isError`);
 
 module.exports.createUserSchema = async function(req, res, next) {
   const orgDB = req.db.Hino;
@@ -10,12 +10,12 @@ module.exports.createUserSchema = async function(req, res, next) {
     })
     .catch(err => {
       const error = err;
-      res.status(500).json({
-        status: "Failure",
-        statusCode: 500,
-        data: `Some thing went wrong ${err}`
-      });
+      error.status = 500;
+      return error;
     });
+  if (isError(users)) {
+    return next(users);
+  }
   return res.status(200).json({
     status: "success",
     statusCode: 200,
@@ -32,16 +32,16 @@ module.exports.insertUser = async function(req, res, next) {
     })
     .catch(err => {
       const error = err;
-      res.status(500).json({
-        status: "Failure",
-        statusCode: 500,
-        data: `Some thing went wrong ${err}`
-      });
+      error.status = 500;
+      return error;
     });
+  if (isError(users)) {
+    return next(users);
+  }
   return res.status(200).json({
     status: "success",
     statusCode: 200,
-    data: "User Data is created"
+    data: "New user is created"
   });
 };
 
@@ -50,16 +50,38 @@ module.exports.fetchUsers = async function(req, res, next) {
   const users = await userModel
     .fetchUsers({
       db: orgDB,
-      data: req.query.name
+      data: null
     })
     .catch(err => {
       const error = err;
-      res.status(500).json({
-        status: "Failure",
-        statusCode: 500,
-        data: `Some thing went wrong ${error}`
-      });
+      error.status = 500;
+      return error;
     });
+  if (isError(users)) {
+    return next(users);
+  }
+  return res.status(200).json({
+    status: "success",
+    statusCode: 200,
+    data: users
+  });
+};
+
+module.exports.fetchUser = async function(req, res, next) {
+  const orgDB = req.db.Hino;
+  const users = await userModel
+    .fetchUsers({
+      db: orgDB,
+      data: req.params.name
+    })
+    .catch(err => {
+      const error = err;
+      error.status = 500;
+      return error;
+    });
+  if (isError(users)) {
+    return next(users);
+  }
   return res.status(200).json({
     status: "success",
     statusCode: 200,
@@ -68,22 +90,43 @@ module.exports.fetchUsers = async function(req, res, next) {
 };
 
 module.exports.updateUser = async function(req, res, next) {
-  console.log("name to update user controller");
   const orgDB = req.db.Hino;
   const users = await userModel
     .updateUser({
       db: orgDB,
-      criteria: req.query.name,
+      criteria: { name: req.params.name },
       data: req.body
     })
     .catch(err => {
       const error = err;
-      res.status(500).json({
-        status: "Failure",
-        statusCode: 500,
-        data: `Some thing went wrong ${error}`
-      });
+      error.status = 500;
+      return error;
     });
+  if (isError(users)) {
+    return next(users);
+  }
+  return res.status(200).json({
+    status: "success",
+    statusCode: 200,
+    data: users
+  });
+};
+
+module.exports.deleteUser = async function(req, res, next) {
+  const orgDB = req.db.Hino;
+  const users = await userModel
+    .deleteUser({
+      db: orgDB,
+      criteria: { name: req.params.name }
+    })
+    .catch(err => {
+      const error = err;
+      error.status = 500;
+      return error;
+    });
+  if (isError(users)) {
+    return next(users);
+  }
   return res.status(200).json({
     status: "success",
     statusCode: 200,

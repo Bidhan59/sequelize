@@ -7,24 +7,10 @@ const morgan = require("morgan");
 const logger = require("./logger").logger("mssql-node");
 const router = require(`./routes.js`);
 const connection = require(`${root}/utils/dbConnection.js`);
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger.json");
 const port = 8080;
 (async function() {
-  // const sequelize = new Sequelize("Hino", "SA", "Basanti59@", {
-  //   host: "localhost",
-  //   dialect: "mssql",
-  //   dialectOptions: {
-  //     options: {
-  //       useUTC: false,
-  //       dateFirst: 1
-  //     }
-  //   },
-  //   pool: {
-  //     max: 5,
-  //     min: 0,
-  //     acquire: 30000,
-  //     idle: 10000
-  //   }
-  // });
   app.use(bodyParser.json({ limit: "100mb" }));
   app.use(
     morgan(logger.morganLogger.format, {
@@ -33,17 +19,13 @@ const port = 8080;
   );
   logger.appLogger.info("Booting Sample Application");
   try {
-    // await sequelize.sync({
-    //   logging: console.log,
-    //   force: true
-    // });
     const db = await connection.getDB();
     if (db == null) {
       logger.appLogger.info(`DB cannot be connected Stopping the APP`);
       process.exit(1);
     }
 
-    console.log("came here>>>>>>>>>>>>>>>");
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
     app.use((req, res, next) => {
       req.db = {
         Hino: db
@@ -51,7 +33,7 @@ const port = 8080;
       next();
     });
     logger.appLogger.info("Attaching the routes");
-    app.use("/", router);
+    app.use("/api/v1", router);
     app.use((req, res, next) => {
       // catch 404 and forward to error handler
       const err = new Error("Resource Not Found");

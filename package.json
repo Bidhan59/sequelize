@@ -17,6 +17,7 @@
     "path": "^0.12.7",
     "sequelize": "^5.21.6",
     "serialize-error": "^6.0.0",
+    "swagger-ui-express": "^4.1.4",
     "tedious": "^8.2.0",
     "winston": "^3.2.1"
   }
